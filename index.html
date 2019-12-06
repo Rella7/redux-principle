@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>redux原理</title>
+</head>
+
+<body>
+  <div>
+    <button onclick="store.dispatch({type:'JIAN',n:2})">-</button>
+    <span id="countDisplay">10</span>
+    <button onclick="store.dispatch({type:'JIA',n:3})">+</button>
+  </div>
+
+  <script>
+    const countDisplay = document.getElementById('countDisplay');
+    const countState = {
+      count: 5
+    }
+    // const renderCount = (state) => {
+    //   countDisplay.innerHTML = state.count;
+    // }
+    // renderCount(countState)
+
+    // const jian = (n) => {
+    //   countState.count = countState.count - n
+    //   renderCount(countState)
+    // }
+
+    // 纯函数   
+    // 没有任何副作用的函数  
+    // 什么样的输入得到什么样的输出
+    // 函数体内部不能调用函数体以外的东西（除了参数）
+    // 函数体内部不能使用Date  Math.random（）这类随机函数
+    // 相同的输入就能得到同样的结果
+    const reducer = (state, action) => {
+      // console.log('reducer')
+      // 如果没有state，给他返回一个初始值
+      if (!state) {
+        return countState
+      }
+      switch (action.type) {
+        case 'JIAN':
+          // 不可变数据
+          // state.count -= action.n
+          // 类似于复制对象的值，再修改
+          return {
+            ...state,
+            count: state.count - action.n
+          }
+          break;
+        case 'JIA':
+          // state.count += action.n
+          return {
+            ...state,
+            count: state.count + action.n
+          }
+          break;
+        default:
+          state
+          break
+      }
+    }
+
+    // const dispatch = (action) => {
+    //   changeState(action)
+    //   renderCount(countState)
+    // }
+
+    // -----------------------------------------------------------------
+    const createStore = (reducer) => {
+      let state = null
+      // 以闭包形式形成单例
+      // 取数值
+      const getState = () => state
+      // 管理render
+      // 注册资源型函数的方法   订阅发布
+      const listeners = []
+      const subscribe = (listener) => listeners.push(listener)
+      // 派发action
+      // 改数值
+      const dispatch = (action) => {
+        state = reducer(state, action)
+        listeners.forEach(listener => listener())
+      }
+      // 生成初始状态
+      dispatch({})
+      return {
+        getState,
+        dispatch,
+        subscribe
+      }
+    }
+
+    const store = createStore(reducer)
+
+    const renderCount = () => {
+      countDisplay.innerHTML = store.getState().count;
+    }
+    renderCount()
+
+    store.subscribe(renderCount)
+    // -----------------------------------------------------------------
+    // 针对对象数组，复制值再修改，不会对原先对象数组造成影响
+
+    var obj = { x: 1, y: 2, z: 3 }
+    // 对象复制1  Object.assign
+    var obj1 = Object.assign({}, obj, { z: 4, a: 5 })   // {x: 1, y: 2, z: 4, a: 5}
+    // 对象复制2  ...扩展符
+    var obj2 = { ...obj, z: 44, a: 55 }    // {x: 1, y: 2, z: 44, a: 55}
+
+    var arr = ['a', 'b', 'c', 'd']
+    var arr1 = arr
+    arr1.push('e')
+    // arr = ['a','b','c','d','e']
+    // arr1 = ['a','b','c','d','e']
+    // 数组复制1   arr.slice()
+    var arr2 = arr.slice()   // ['a','b','c','d','e']
+    arr2.push('1')
+    // arr = ['a','b','c','d','e']
+    // arr2 = ['a','b','c','d','e','1']
+
+    // 数组复制1   ...扩展符
+    var arr3 = [...arr, 'x', 'y']
+    // arr = ['a','b','c','d','e']
+    // arr3 = ['a','b','c','d','e','x','y']
+
+  </script>
+</body>
+
+</html>
